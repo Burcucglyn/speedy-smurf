@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Birthday Mission</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0a0e1a 0%, #111827 40%, #0f172a 100%);
+    color: #e2e8f0;
+    font-family: 'Crimson Pro', Georgia, serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px;
+    overflow-x: hidden;
+  }
+  #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+  .star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle ease-in-out infinite; }
+  @keyframes twinkle { 0%,100%{opacity:0.2} 50%{opacity:1} }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  #app { position: relative; z-index: 1; width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; }
+  #intro { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center; max-width: 420px; animation: fadeInUp 1s ease-out; }
+  .intro-emoji { font-size: 64px; margin-bottom: 16px; }
+  .intro-title { font-family: 'Space Mono', monospace; font-size: 22px; letter-spacing: 6px; font-weight: 700; margin-bottom: 8px; }
+  .intro-subtitle { font-size: 16px; font-style: italic; color: #94a3b8; font-weight: 300; margin-bottom: 24px; }
+  .intro-divider { width: 60px; height: 1px; background: rgba(147,197,253,0.3); margin-bottom: 24px; }
+  .intro-text { font-family: 'Space Mono', monospace; font-size: 12px; line-height: 2.2; color: #64748b; letter-spacing: 1px; margin-bottom: 40px; }
+  .start-btn { font-family: 'Space Mono', monospace; font-size: 13px; letter-spacing: 4px; padding: 14px 36px; background: transparent; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.25); border-radius: 2px; cursor: pointer; transition: all 0.3s ease; }
+  .start-btn:hover { background: #e2e8f0; color: #0f172a; }
+  #game { display: none; width: 100%; }
+  .header { width: 100%; display: flex; justify-content: space-between; align-items: center; font-family: 'Space Mono', monospace; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .header-title { font-size: 14px; letter-spacing: 3px; opacity: 0.6; }
+  .header-scene { font-size: 11px; opacity: 0.4; }
+  .scene-card { width: 100%; transition: opacity 0.4s, transform 0.4s; }
+  .scene-emoji { font-size: 48px; margin-bottom: 20px; text-align: center; }
+  .scene-text { font-size: 17px; line-height: 1.75; color: #cbd5e1; font-weight: 300; letter-spacing: 0.2px; }
+  .scene-text p { margin: 6px 0; }
+  .scene-text p.spacer { margin: 12px 0; }
+  .choices { margin-top: 28px; display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn { font-family: 'Crimson Pro', Georgia, serif; font-size: 15px; padding: 14px 20px; background: rgba(255,255,255,0.03); color: #e2e8f0; border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; cursor: pointer; text-align: left; transition: all 0.2s ease; line-height: 1.4; }
+  .choice-btn:hover { background: rgba(147,197,253,0.15); border-color: rgba(147,197,253,0.5); }
+  .restart-btn { font-family: 'Crimson Pro', Georgia, serif; font-size: 13px; padding: 14px 20px; background: rgba(255,255,255,0.03); color: #93c5fd; border: 1px solid rgba(147,197,253,0.4); border-radius: 4px; cursor: pointer; transition: all 0.2s ease; margin-top: 32px; }
+  .restart-btn:hover { background: rgba(147,197,253,0.15); }
+  #bottom { height: 60px; }
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div id="app">
+  <div id="intro">
+    <div class="intro-emoji">🚀</div>
+    <h1 class="intro-title">THE BIRTHDAY MISSION</h1>
+    <div class="intro-subtitle">A Very Important Adventure for a Very Important Person</div>
+    <div class="intro-divider"></div>
+    <p class="intro-text">
+      Classification: TOP SECRET<br>
+      Agent: Speedy Smurf<br>
+      Status: Birthday<br>
+      Clearance Level: Mermaid
+    </p>
+    <button class="start-btn" onclick="startGame()">BEGIN MISSION</button>
+  </div>
+  <div id="game">
+    <div class="header">
+      <span class="header-title">THE BIRTHDAY MISSION</span>
+      <span class="header-scene" id="scene-num">Scene 1</span>
+    </div>
+    <div class="scene-card" id="scene-card">
+      <div class="scene-emoji" id="scene-emoji"></div>
+      <div class="scene-text" id="scene-text"></div>
+      <div class="choices" id="choices"></div>
+    </div>
+  </div>
+  <div id="bottom"></div>
+</div>
+
+<script>
+const SCENES = {
+  start: {
+    text: "You wake up in the kitchen. The kettle is on. Taskmaster is paused on the TV. There's a note on the fridge:\n\n\"Happy Birthday, Speedy Smurf. Your mission begins now.\"\n\nThere's also banana bread on the counter. It's definitely yours.",
+    emoji: "🎂",
+    choices: [
+      { text: "Eat the banana bread immediately", next: "banana_bread" },
+      { text: "Read the back of the note", next: "note_back" },
+      { text: "Unpause Taskmaster first, obviously", next: "taskmaster" },
+    ],
+  },
+  banana_bread: {
+    text: "You inhale the banana bread. It's good. Really good. Sweet tooth: satisfied.\n\nYour phone buzzes. Unknown number:\n\n\"Agent Smurf. You have been selected for a mission of galactic importance. Report to the Europa Space Programme immediately. Bring your Switch.\"\n\nSecond message: \"Also, Juno says happy birthday.\"",
+    emoji: "🍌",
+    choices: [
+      { text: "Accept the mission", next: "mission_briefing" },
+      { text: "Text back: 'Who is this? Ash?'", next: "ash_text" },
+    ],
+  },
+  note_back: {
+    text: "The back of the note reads:\n\n\"P.S. If anyone at the gym asks, your name is Fatma. You are a student. You are definitely not a ginger British woman about to finish a PhD. Act natural.\"\n\nUnderneath, in smaller writing: \"Your real mission starts now.\"",
+    emoji: "📝",
+    choices: [
+      { text: "Head to the gym as Fatma", next: "gym_fatma" },
+      { text: "Skip the gym, check the mission", next: "mission_briefing" },
+    ],
+  },
+  taskmaster: {
+    text: "You unpause Taskmaster. Alex Horne is explaining that the next task is: \"Get to Europa. You have 45 minutes. Your time starts now.\"\n\nThe screen glitches. A countdown appears. MISSION TO EUROPA. DEPARTURE IN 3 HOURS.\n\nGreg Davies' voice booms: \"Speedy Smurf, stop watching telly and get moving.\"",
+    emoji: "📺",
+    choices: [
+      { text: "Obey Greg Davies", next: "mission_briefing" },
+      { text: "Finish the episode first", next: "greg_angry" },
+    ],
+  },
+  greg_angry: {
+    text: "Greg Davies stares directly into the camera.\n\n\"I said. Get. Moving.\"\n\nThe TV turns itself off. The kettle starts boiling aggressively. Even Gracie seems to be judging you.\n\nYou should go.",
+    emoji: "😤",
+    choices: [
+      { text: "Fine. Accept the mission.", next: "mission_briefing" },
+    ],
+  },
+  ash_text: {
+    text: "You text back: 'Who is this? Ash?'\n\nReply: 'No. This is the Europa Space Agency. We don't play tennis.'\n\nAnother: 'Although we hear he's very good at it.'\n\nAnother: 'Please report for duty, Agent Smurf.'",
+    emoji: "📱",
+    choices: [
+      { text: "Accept the mission", next: "mission_briefing" },
+    ],
+  },
+  gym_fatma: {
+    text: "You arrive at the gym. The person at the desk scans the pass.\n\n\"Morning, Fatma. How's the studying going?\"\n\nYou nod seriously. \"Very well. I am studying. At university. As students do.\"\n\nThey narrow their eyes. \"You look different today.\"\n\nYour ginger hair gleams under the fluorescent lights.\n\n\"New shampoo,\" you say, and power-walk away before they can ask anything else.",
+    emoji: "💪",
+    choices: [
+      { text: "Smash a workout, then check the mission", next: "mission_briefing" },
+    ],
+  },
+  mission_briefing: {
+    text: "EUROPA SPACE AGENCY. MISSION BRIEFING.\n\n\"Agent Smurf. The Terminator. The Mermaid. Fatma, apparently.\n\nYour mission: reach Europa. You modelled the water. You know whether bacteria can survive there. You are the only person for this job.\n\nBut first. The IRONMAN QUALIFYING ROUND.\"\n\nYou look down. You're already in a wetsuit.",
+    emoji: "🚀",
+    choices: [
+      { text: "Take the Central line to the start line", next: "tube_bee" },
+      { text: "Complain that nobody mentioned a triathlon", next: "complain" },
+    ],
+  },
+  complain: {
+    text: "You raise your hand to complain.\n\nA voice from mission control: \"Agent Smurf, you were born in the water. You were literally made for this. Stop complaining.\"\n\nFair point.",
+    emoji: "🤷",
+    choices: [
+      { text: "Take the Central line to the start line", next: "tube_bee" },
+    ],
+  },
+  tube_bee: {
+    text: "You take the Central line to the start line.\n\nSomewhere around Liverpool Street there's a bee on the handrail. You let it onto your hand. It does not leave.\n\nYou try to release it at the doors. It flies back in. The man opposite stands up, waves his arms, convinced it's on him. It is not on him.\n\nThe bee returns to your hand.\n\n\"I kept one of you in my school bag once,\" you tell it. \"My teacher phoned my mum.\"\n\nThe bee is unbothered. It follows you off at your stop.",
+    emoji: "🐝",
+    choices: [
+      { text: "Let the bee come to the triathlon", next: "bee_companion" },
+      { text: "Release the bee and get to the start line", next: "triathlon_start" },
+    ],
+  },
+  bee_companion: {
+    text: "The bee is coming on the mission. That's decided.\n\nMission control is less convinced.\n\n\"Agent Smurf, is that a bee?\"\n\n\"She's crew.\"\n\n\"She's not on the manifest.\"\n\n\"She is now.\"\n\nSilence. Then: \"Fine. Report to the start line.\"",
+    emoji: "🐝",
+    choices: [
+      { text: "Head to the start line", next: "triathlon_start" },
+    ],
+  },
+  triathlon_start: {
+    text: "You're at the start line. The crowd is huge.\n\n\"Competitors, welcome to the IRONMAN QUALIFYING ROUND FOR EUROPA.\"\n\nSomeone next to you looks nervous. You do not look nervous. You have been training for this. Hawaii is just the beginning.\n\n\"First up: the swim.\"",
+    emoji: "🏁",
+    choices: [
+      { text: "Get in the water", next: "swim" },
+    ],
+  },
+  swim: {
+    text: "You dive in. Cold, doesn't matter. You were born in the water.\n\nYou are overtaking everyone. A dolphin appears alongside you, clocks your pace, and turns back.\n\nYou competed in Portugal. You know exactly what you're doing here.\n\nThe crowd chants: \"MERMAID. MERMAID. MERMAID.\"\n\nYou've earned it.",
+    emoji: "🏊",
+    choices: [
+      { text: "Transition to the bike leg", next: "bike" },
+      { text: "Take a bow first", next: "bow" },
+    ],
+  },
+  bow: {
+    text: "You take a bow. The crowd loses it.\n\nSomeone throws a cocktail at you. It's sangria. Portugal 2024 comes flooding back.\n\nYou catch it mid-air, take a sip, and transition to the bike. Clean.",
+    emoji: "🍹",
+    choices: [
+      { text: "Bike leg, let's go", next: "bike" },
+    ],
+  },
+  bike: {
+    text: "The cycling course is destination-based. Of course it is.\n\nThe bank. The pizza place. The launchpad.\n\nHalfway through, your legs are burning. There's a fork in the road.\n\nLeft: SPICY FOOD STATION.\n\nRight: SWEET TOOTH STATION.",
+    emoji: "🚴",
+    choices: [
+      { text: "Sweet Tooth Station", next: "sweet_station" },
+      { text: "Risk the spicy food station", next: "spicy_station" },
+    ],
+  },
+  sweet_station: {
+    text: "There's cake, biscuits, and someone handing out Mario Kart cartridges as prizes.\n\nYou grab a slice of cake and a copy for the journey.\n\n\"For Europa,\" the volunteer says.\n\n\"Obviously,\" you say.\n\nSugar rush activated. You finish the bike leg at twice the speed.",
+    emoji: "🍰",
+    choices: [
+      { text: "Hit the run leg", next: "run" },
+    ],
+  },
+  spicy_station: {
+    text: "They hand you a single chilli pepper.\n\nYou look at it.\n\nIt looks at you.\n\n\"I can't,\" you say.\n\n\"We know,\" says the volunteer. \"Here's some cake instead.\"\n\nYou eat the cake and continue.",
+    emoji: "🌶️",
+    choices: [
+      { text: "Hit the run leg", next: "run" },
+    ],
+  },
+  run: {
+    text: "The run takes you through London. Past the sauna. Past the flat.\n\nYou're running well. The finish line is in sight.\n\nThen your lungs tighten. The world goes slightly blue.\n\nA paramedic rushes over. \"Are you okay? You look blue.\"\n\nYou look straight at them.\n\n\"Blue is my Blue Steel.\"\n\nYou keep running.\n\nSomeone in the crowd shouts: \"SPEEDY SMURF!\" That's how that started, actually.\n\nYou cross the finish line. Blue, wheezing, victorious.",
+    emoji: "🏃",
+    choices: [
+      { text: "Collect your medal and board the spacecraft", next: "spacecraft" },
+    ],
+  },
+  spacecraft: {
+    text: "You board the spacecraft. There's a kitchen. Taskmaster is pre-loaded on the TV. There's a Switch dock. And on the windowsill, completely unbothered, is a bee.\n\nMission control: \"We told her she wasn't on the manifest.\"\n\n\"She doesn't care about the manifest.\"\n\n\"Apparently not.\"\n\nYou take your seat. The countdown begins.\n\nA screen flashes: INCOMING VIDEO CALL FROM EARTH.",
+    emoji: "🛸",
+    choices: [
+      { text: "Answer the video call", next: "video_call" },
+      { text: "Start Zelda first, they can wait", next: "zelda_first" },
+    ],
+  },
+  zelda_first: {
+    text: "You load up Zelda. Three hours pass.\n\nThe call is still ringing. Three hours. Without hanging up.\n\nYou should probably answer it.",
+    emoji: "🎮",
+    choices: [
+      { text: "Answer the call", next: "video_call" },
+    ],
+  },
+  video_call: {
+    text: "The screen flickers on. It's everyone.\n\nJuno is barking in the background. Ash is waving with the energy of a person who has never not been at a party. Sarah and Cesca are holding a banner. Chloe is there too, looking like she got the call five minutes ago.\n\nAnd in the kitchen, because of course it's the kitchen, there's a cake.",
+    emoji: "📞",
+    choices: [
+      { text: "Read the cake", next: "cake_message" },
+    ],
+  },
+  cake_message: {
+    text: "The cake reads:\n\n\"Happy Birthday to The Terminator / The Mermaid / Speedy Smurf / Fatma (???) / Bee Keeper\n\nYou were born in the water.\nYou kept a bee in your school bag.\nYou freed a bee on the Central line and caused a scene.\nYou're about to do an Ironman.\nYou're finishing your PhD, publishing your findings, and putting Doctor in front of your name.\n\nNot bad for someone who can't handle mild onion steam.\n\nHappy Birthday Jess.\nFrom Burcu 🩵\"",
+    emoji: "🎂",
+    choices: [
+      { text: "🩵", next: "ending" },
+    ],
+  },
+  ending: {
+    text: "You look out the window. Jupiter is getting closer. Europa is there in the distance, icy and quiet, full of things you're going to figure out.\n\nBehind you: Taskmaster on the TV, Zelda on the Switch, cake crumbs on the counter, and a bee on the windowsill who doesn't care about the manifest.\n\nNot a bad birthday.\n\nHappy Birthday, Jess. 🚀🩵",
+    emoji: "🌌",
+    choices: [],
+  },
+};
+
+let history = [];
+
+function startGame() {
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('game').style.display = 'block';
+  renderScene('start');
+}
+
+function renderScene(key) {
+  const scene = SCENES[key];
+  const card = document.getElementById('scene-card');
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(12px)';
+
+  setTimeout(() => {
+    document.getElementById('scene-num').textContent = 'Scene ' + (history.length + 1);
+    document.getElementById('scene-emoji').textContent = scene.emoji;
+
+    const lines = scene.text.split('\n');
+    document.getElementById('scene-text').innerHTML = lines.map(l =>
+      `<p class="${l === '' ? 'spacer' : ''}">${l}</p>`
+    ).join('');
+
+    const choicesEl = document.getElementById('choices');
+    choicesEl.innerHTML = '';
+
+    if (scene.choices.length > 0) {
+      scene.choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = choice.text;
+        btn.onclick = () => {
+          history.push(key);
+          renderScene(choice.next);
+        };
+        choicesEl.appendChild(btn);
+      });
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'restart-btn';
+      btn.textContent = 'Play again from the start';
+      btn.onclick = () => {
+        history = [];
+        renderScene('start');
+      };
+      choicesEl.appendChild(btn);
+    }
+
+    card.style.opacity = '1';
+    card.style.transform = 'translateY(0)';
+    document.getElementById('bottom').scrollIntoView({ behavior: 'smooth' });
+  }, 400);
+}
+
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 60; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 2.5 + 0.5;
+  s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${size}px;height:${size}px;animation-delay:${Math.random()*3}s;animation-duration:${Math.random()*2+1.5}s`;
+  starsEl.appendChild(s);
+}
+</script>
+</body>
+</html>
