@@ -6,7 +6,7 @@ flatmate's birthday, wanted to make something special to her.
 
 A small interactive birthday game. Made with positive emotions (alpha XX chromosomes don't talk about emotions, you know the drill, queen).
 
-Built with vanilla HTML, CSS and JavaScript. No frameworks, no dependencies. Just open `jess_html.html`.
+Built with vanilla HTML, CSS and JavaScript. No frameworks, no dependencies. Just open `inbox.html`.
 
 ---
 
