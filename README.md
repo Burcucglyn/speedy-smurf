@@ -10,4 +10,4 @@ Built with vanilla HTML, CSS and JavaScript. No frameworks, no dependencies. Jus
 
 ---
 
-Hosted via GitHub Pages.
+Hosted via GitHub Pages: https://burcucglyn.github.io/speedy-smurf/
